@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Guessing Game</title>
+
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .card {
+      background: #fff;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+      text-align: center;
+      width: 350px;
+      transition: transform 0.3s ease;
+    }
+    .card:hover {
+      transform: scale(1.03);
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 20px;
+    }
+    button {
+      background: #667eea;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      margin: 10px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+      transition: background 0.3s, transform 0.2s;
+    }
+    button:hover {
+      background: #5a67d8;
+      transform: translateY(-2px);
+    }
+
+    /* Mic button */
+    .mic-btn {
+      background: #222;
+      margin-top: 15px;
+    }
+    .mic-btn:hover {
+      background: #111;
+    }
+
+    #voiceStatus {
+      margin-top: 10px;
+      color: #444;
+      font-size: 14px;
+      min-height: 20px;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="card">
+    <h1>🔢 Guessing Game</h1>
+    <p>Choose your game mode:</p>
+
+    <form id="modeForm" method="post">
+      <button onclick="playClick()" id="numBtn" type="submit" name="choice" value="number">
+        Play with Numbers
+      </button>
+
+      <button onclick="playClick()" id="alphaBtn" type="submit" name="choice" value="alphabet">
+        Play with Alphabets
+      </button>
+    </form>
+
+    <button class="mic-btn" onclick="startListening()">🎤 Voice Command</button>
+    <p id="voiceStatus"></p>
+  </div>
+
+  <!-- CLICK SOUND -->
+  <audio id="clickSound" preload="auto"
+        src="{{ url_for('static', filename='sounds/click.mp3') }}">
+  </audio>
+
+  <script>
+    /* ---------------------------
+       PLAY CLICK SOUND
+    ----------------------------*/
+    function playClick() {
+      const clickAudio = document.getElementById("clickSound");
+      clickAudio.currentTime = 0;  // always restart sound
+      clickAudio.play();
+    }
+
+    /* ---------------------------
+       VOICE COMMANDS
+    ----------------------------*/
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognition();
+
+    recognition.lang = "en-US";
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    function startListening() {
+      document.getElementById("voiceStatus").textContent = "🎙 Listening...";
+      recognition.start();
+    }
+
+    recognition.onresult = function(event) {
+      const command = event.results[0][0].transcript.toLowerCase();
+      document.getElementById("voiceStatus").textContent = "You said: " + command;
+
+      if (command.includes("number")) {
+        playClick();
+        document.getElementById("numBtn").click();
+      }
+      else if (command.includes("alphabet") || command.includes("letter")) {
+        playClick();
+        document.getElementById("alphaBtn").click();
+      }
+      else if (command.includes("restart")) {
+        playClick();
+        window.location.href = "/";
+      }
+      else {
+        document.getElementById("voiceStatus").textContent = "❌ Command not recognized";
+      }
+    };
+
+    recognition.onerror = function() {
+      document.getElementById("voiceStatus").textContent = "❌ Voice error, try again.";
+    };
+  </script>
+
+</body>
+</html>
